@@ -9,7 +9,9 @@
     "tags": ["polytechnic", "close friend"],
     "bio": "We studied together at Rajshahi Polytechnic.",
     "goal": 30,
-    "next_due_date": "2026-04-22"
+    "next_due_date": "2026-04-22",
+    "last_interaction": "Call",
+    "is_favorite": true
   },
   {
     "id": 2,
@@ -21,7 +23,9 @@
     "tags": ["gaming", "school"],
     "bio": "Late night gaming partner and school friend.",
     "goal": 21,
-    "next_due_date": "2026-05-03"
+    "next_due_date": "2026-05-03",
+    "last_interaction": "Video",
+    "is_favorite": false
   },
   {
     "id": 3,
@@ -33,7 +37,9 @@
     "tags": ["college", "friend"],
     "bio": "College friend who loves photography.",
     "goal": 14,
-    "next_due_date": "2026-05-12"
+    "next_due_date": "2026-05-12",
+    "last_interaction": "Text",
+    "is_favorite": true
   },
   {
     "id": 4,
@@ -45,7 +51,9 @@
     "tags": ["cricket", "friend"],
     "bio": "We play cricket every weekend.",
     "goal": 25,
-    "next_due_date": "2026-04-21"
+    "next_due_date": "2026-04-21",
+    "last_interaction": "Meetup",
+    "is_favorite": false
   },
   {
     "id": 5,
@@ -57,7 +65,9 @@
     "tags": ["design", "project"],
     "bio": "Worked together on UI design projects.",
     "goal": 20,
-    "next_due_date": "2026-05-08"
+    "next_due_date": "2026-05-08",
+    "last_interaction": "Email",
+    "is_favorite": true
   },
   {
     "id": 6,
@@ -69,7 +79,9 @@
     "tags": ["coding", "team"],
     "bio": "Coding partner for competitions.",
     "goal": 30,
-    "next_due_date": "2026-05-02"
+    "next_due_date": "2026-05-02",
+    "last_interaction": "Discord",
+    "is_favorite": false
   },
   {
     "id": 7,
@@ -81,7 +93,9 @@
     "tags": ["neighbor", "friend"],
     "bio": "My neighbor and daily hangout buddy.",
     "goal": 10,
-    "next_due_date": "2026-05-10"
+    "next_due_date": "2026-05-10",
+    "last_interaction": "Coffee",
+    "is_favorite": true
   },
   {
     "id": 8,
@@ -93,7 +107,9 @@
     "tags": ["school", "friend"],
     "bio": "Old school friend, lost touch recently.",
     "goal": 30,
-    "next_due_date": "2026-04-20"
+    "next_due_date": "2026-04-20",
+    "last_interaction": "Text",
+    "is_favorite": false
   },
   {
     "id": 9,
@@ -105,7 +121,9 @@
     "tags": ["gym", "friend"],
     "bio": "Gym partner who motivates me daily.",
     "goal": 21,
-    "next_due_date": "2026-05-04"
+    "next_due_date": "2026-05-04",
+    "last_interaction": "Gym",
+    "is_favorite": false
   },
   {
     "id": 10,
@@ -117,6 +135,8 @@
     "tags": ["family", "cousin"],
     "bio": "My cousin, we talk often.",
     "goal": 15,
-    "next_due_date": "2026-05-11"
+    "next_due_date": "2026-05-11",
+    "last_interaction": "WhatsApp",
+    "is_favorite": true
   }
 ]
