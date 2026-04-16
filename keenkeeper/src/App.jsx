@@ -6,3 +6,32 @@ import Timeline from "./pages/Timeline";
 import Stats from "./pages/Stats";
 import NotFound from "./pages/NotFound";
 
+const router = [
+  {
+  path : "/",
+  element: <MainLayout />,
+  children: [
+    { index: true, element: <Home />},
+    {path: "friend/:id",element: <FriendDetails />},
+    {path: "timeline",element: <Timeline />},
+    {path: "stats", element: <Stats />},
+ ],
+  },
+    {
+      path: "*",
+      element: <NotFound/>,
+    },
+  ],
+  
+const router = createBrowserRouter(router);
+
+function App() {
+  return (
+    <div className="page-wrapper">
+      <RouterProvider router={router} />
+
+    </div>
+  )
+}
+
+export default App;
