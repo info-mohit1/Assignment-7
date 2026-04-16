@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { FaBoxArchive, FaTrash } from "react-icons/fa6";
 import { LuAlarmClockCheck } from "react-icons/lu";
 import { toast } from "react-hot-toast";
 import { getTimelineData, saveTimelineData } from "../utils/localStorage";
 
-// Icons Section 
-
+// Icons
 import callIcon from "../assets/icons/call.png";
 import textIcon from "../assets/icons/text.png";
 import videoIcon from "../assets/icons/video.png";
@@ -17,24 +16,26 @@ const FriendDetails = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/friends.json")
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchDetails = async () => {
+      try {
+        const res = await fetch("/friends.json");
+        const data = await res.json();
         const foundFriend = data.find((item) => item.id === Number(id));
         setFriend(foundFriend);
+      } catch (error) {
+        console.error("Load failed:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Failed to load friend details:", error);
-        setLoading(false);
-      });
+      }
+    };
+    fetchDetails();
   }, [id]);
 
-  const getStatusStyle = (status) => {
-    if (status === "overdue") return "bg-red-500 text-white";
-    if (status === "almost due") return "bg-yellow-500 text-white";
-    return "bg-green-700 text-white";
-  };
+  const statusStyles = useMemo(() => ({
+    overdue: "bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]",
+    "almost due": "bg-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.4)]",
+    default: "bg-green-600 shadow-[0_0_15px_rgba(22,163,74,0.4)]"
+  }), []);
 
   const handleCheckIn = (type) => {
     const newEntry = {
@@ -45,168 +46,134 @@ const FriendDetails = () => {
       date: new Date().toISOString(),
     };
 
-    const oldTimeline = getTimelineData();
-    const updatedTimeline = [newEntry, ...oldTimeline];
-
+    const updatedTimeline = [newEntry, ...getTimelineData()];
     saveTimelineData(updatedTimeline);
-    toast.success(`${type} added to timeline`);
+    
+    toast.success(`${type} recorded!`, {
+      icon: '✅',
+      style: { borderRadius: '10px', background: '#1E293B', color: '#fff' }
+    });
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center text-slate-300 text-xl">
-        Loading friend details...
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-[60vh] flex items-center justify-center animate-pulse text-slate-400 text-xl">
+      Retrieving friendship data...
+    </div>
+  );
 
-  if (!friend) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center text-red-400 text-xl">
-        Friend not found.
-      </div>
-    );
-  }
+  if (!friend) return (
+    <div className="min-h-[60vh] flex items-center justify-center text-red-400 text-xl font-bold">
+      404: Friend Not Found
+    </div>
+  );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8 page-reveal">
       
-      {/* LEFT Side Section */}
-
+       
       <div className="space-y-4">
-        <div className="bg-[#121A2B] border border-[#25324A] rounded-2xl p-8 text-center">
-          <img
-            src={friend.picture}
-            alt={friend.name}
-            className="w-28 h-28 rounded-full object-cover mx-auto mb-4"
-          />
+        <div className="bg-[#121A2B]/80 backdrop-blur-xl border border-[#25324A] rounded-3xl p-8 text-center transition-all hover:border-blue-500/30">
+          <div className="relative inline-block group">
+            <img
+              src={friend.picture}
+              alt={friend.name}
+              className="w-32 h-32 rounded-full object-cover mx-auto mb-6 border-4 border-[#1E293B] group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 rounded-full border-2 border-blue-500/50 scale-110 opacity-0 group-hover:opacity-100 transition-all duration-500 animate-ping-slow"></div>
+          </div>
 
-          <h2 className="text-3xl font-bold text-white mb-3">{friend.name}</h2>
+          <h2 className="text-3xl font-bold text-white mb-2">{friend.name}</h2>
 
-          <span className={`px-4 py-1 rounded-full text-sm font-semibold ${getStatusStyle(friend.status)}`}>
-            {friend.status}
-          </span>
+          <div className="mb-6">
+            <span className={`px-5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-white ${statusStyles[friend.status] || statusStyles.default}`}>
+              {friend.status}
+            </span>
+          </div>
 
-          <div className="flex flex-wrap justify-center gap-2 my-4">
+          <div className="flex flex-wrap justify-center gap-2 mb-6">
             {friend.tags.map((tag, index) => (
-              <span
-                key={index}
-                className="bg-[#1E293B] text-[#7CFFB2] px-3 py-1 rounded-full text-sm"
-              >
-                {tag}
+              <span key={index} className="bg-[#1E293B] text-[#7CFFB2] px-3 py-1 rounded-lg text-xs font-medium border border-[#25324A]">
+                #{tag}
               </span>
             ))}
           </div>
 
-          <p className="text-[#94A3B8] italic mb-3">"{friend.bio}"</p>
-          <p className="text-[#94A3B8]">{friend.email}</p>
+          <p className="text-slate-400 italic mb-4 leading-relaxed">"{friend.bio}"</p>
+          <p className="text-blue-400 text-sm font-medium">{friend.email}</p>
         </div>
 
-        <button className="w-full bg-[#1E293B] border border-[#25324A] text-white rounded-xl py-4 flex items-center justify-center gap-3 hover:bg-[#2A3A55] transition">
-          <LuAlarmClockCheck />
-          Snooze 2 Weeks
-        </button>
-
-        <button className="w-full bg-[#1E293B] border border-[#25324A] text-white rounded-xl py-4 flex items-center justify-center gap-3 hover:bg-[#2A3A55] transition">
-          <FaBoxArchive />
-          Archive
-        </button>
-
-        <button className="w-full bg-[#1E293B] border border-red-500 text-red-400 rounded-xl py-4 flex items-center justify-center gap-3 hover:bg-red-500 hover:text-white transition">
-          <FaTrash />
-          Delete
-        </button>
+        {/* Action Buttons */}
+        <div className="space-y-3">
+          {[
+            { icon: <LuAlarmClockCheck />, text: "Snooze 2 Weeks", color: "hover:bg-blue-500" },
+            { icon: <FaBoxArchive />, text: "Archive", color: "hover:bg-slate-700" }
+          ].map((btn, i) => (
+            <button key={i} className={`w-full bg-[#1E293B] border border-[#25324A] text-white rounded-2xl py-4 flex items-center justify-center gap-3 transition-all duration-300 active:scale-95 ${btn.color}`}>
+              {btn.icon} {btn.text}
+            </button>
+          ))}
+          
+          <button className="w-full bg-transparent border border-red-500/50 text-red-400 rounded-2xl py-4 flex items-center justify-center gap-3 hover:bg-red-500 hover:text-white transition-all duration-300 active:scale-95">
+            <FaTrash /> Delete Friend
+          </button>
+        </div>
       </div>
 
-      {/* RIGHT Side Section */}
-
+      {/* RIGHT SIDE: Stats & Check-In */}
       <div className="lg:col-span-2 space-y-6">
-
-        {/* STATS */}
+        
+        {/* STATS TILES */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-[#121A2B] border border-[#25324A] rounded-2xl p-6 text-center">
-            <h3 className="text-4xl font-bold text-[#7CFFB2] mb-2">
-              {friend.days_since_contact}
-            </h3>
-            <p className="text-[#94A3B8]">Days Since Contact</p>
-          </div>
-
-          <div className="bg-[#121A2B] border border-[#25324A] rounded-2xl p-6 text-center">
-            <h3 className="text-4xl font-bold text-[#7CFFB2] mb-2">
-              {friend.goal}
-            </h3>
-            <p className="text-[#94A3B8]">Goal (Days)</p>
-          </div>
-
-          <div className="bg-[#121A2B] border border-[#25324A] rounded-2xl p-6 text-center">
-            <h3 className="text-2xl font-bold text-[#7CFFB2] mb-2">
-              {friend.next_due_date}
-            </h3>
-            <p className="text-[#94A3B8]">Next Due</p>
-          </div>
+          {[
+            { label: "Days Since Contact", val: friend.days_since_contact, highlight: "text-emerald-400" },
+            { label: "Goal (Days)", val: friend.goal, highlight: "text-blue-400" },
+            { label: "Next Due", val: friend.next_due_date, highlight: "text-purple-400" }
+          ].map((stat, i) => (
+            <div key={i} className="bg-[#121A2B] border border-[#25324A] rounded-2xl p-6 text-center hover:translate-y-[-4px] transition-transform">
+              <h3 className={`text-4xl font-black mb-1 ${stat.highlight}`}>{stat.val}</h3>
+              <p className="text-slate-500 text-sm font-medium uppercase tracking-widest">{stat.label}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Goal Section */}
-
-        <div className="bg-[#121A2B] border border-[#25324A] rounded-2xl p-6 flex items-start justify-between gap-4">
+        {/* RELATIONSHIP GOAL */}
+        <div className="bg-gradient-to-r from-[#121A2B] to-[#1E293B] border border-[#25324A] rounded-3xl p-8 flex items-center justify-between shadow-xl">
           <div>
-            <h3 className="text-3xl font-semibold text-[#7CFFB2] mb-3">
-              Relationship Goal
-            </h3>
-            <p className="text-[#94A3B8] text-xl">
-              Connect every{" "}
-              <span className="font-bold text-white">{friend.goal} days</span>
+            <h3 className="text-xl font-bold text-white mb-1">Relationship Goal</h3>
+            <p className="text-slate-400">
+              Target: <span className="text-[#7CFFB2] font-bold">Every {friend.goal} days</span>
             </p>
           </div>
-
-          <button className="bg-[#1E293B] hover:bg-[#2A3A55] text-white px-5 py-2 rounded-lg">
-            Edit
+          <button className="px-6 py-2 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-xl hover:bg-blue-600 hover:text-white transition-all">
+            Edit Goal
           </button>
         </div>
 
-        {/* CHECK-IN Section */}
-        
-        <div className="bg-[#121A2B] border border-[#25324A] rounded-2xl p-6">
-          <h3 className="text-3xl font-semibold text-[#7CFFB2] mb-6">
+        {/* QUICK CHECK-IN */}
+        <div className="bg-[#121A2B] border border-[#25324A] rounded-3xl p-8 shadow-2xl">
+          <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+            <span className="w-2 h-8 bg-blue-500 rounded-full"></span>
             Quick Check-In
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => handleCheckIn("Call")}
-              className="group bg-[#0F1B2D] border border-[#25324A] rounded-xl py-8 text-white flex flex-col items-center gap-3 hover:bg-[#1E293B] transition"
-            >
-              <img
-                src={callIcon}
-                alt="Call"
-                className="w-10 h-10 object-contain transition group-hover:scale-110"
-              />
-              <span className="text-xl">Call</span>
-            </button>
-
-            <button
-              onClick={() => handleCheckIn("Text")}
-              className="group bg-[#0F1B2D] border border-[#25324A] rounded-xl py-8 text-white flex flex-col items-center gap-3 hover:bg-[#1E293B] transition"
-            >
-              <img
-                src={textIcon}
-                alt="Text"
-                className="w-10 h-10 object-contain transition group-hover:scale-110"
-              />
-              <span className="text-xl">Text</span>
-            </button>
-
-            <button
-              onClick={() => handleCheckIn("Video")}
-              className="group bg-[#0F1B2D] border border-[#25324A] rounded-xl py-8 text-white flex flex-col items-center gap-3 hover:bg-[#1E293B] transition"
-            >
-              <img
-                src={videoIcon}
-                alt="Video"
-                className="w-10 h-10 object-contain transition group-hover:scale-110"
-              />
-              <span className="text-xl">Video</span>
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { type: "Call", icon: callIcon, shadow: "hover:shadow-green-500/20" },
+              { type: "Text", icon: textIcon, shadow: "hover:shadow-blue-500/20" },
+              { type: "Video", icon: videoIcon, shadow: "hover:shadow-purple-500/20" }
+            ].map((action) => (
+              <button
+                key={action.type}
+                onClick={() => handleCheckIn(action.type)}
+                className={`group bg-[#0F1B2D] border border-[#25324A] rounded-2xl py-10 flex flex-col items-center gap-4 transition-all duration-500 hover:-translate-y-2 hover:bg-[#1E293B] ${action.shadow} hover:border-blue-500/40`}
+              >
+                <div className="relative">
+                  <img src={action.icon} alt={action.type} className="w-14 h-14 object-contain group-hover:scale-125 transition-transform duration-500 ease-out" />
+                  <div className="absolute -inset-2 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+                <span className="text-lg font-bold text-slate-300 group-hover:text-white">{action.type}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>

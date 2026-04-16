@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Banner from "../components/Banner";
 import SummaryCards from "../components/SummaryCards";
 import FriendCard from "../components/FriendCard";
@@ -6,40 +6,56 @@ import LoadingSpinner from "../components/LoadingSpinner";
 
 const Home = () => {
   const [friends, setFriends] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/friends.json")
-      .then((res) => res.json())
-      .then((data) => {
+    
+    const fetchFriends = async () => {
+      try {
+        const response = await fetch("/friends.json");
+        const data = await response.json();
         setFriends(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Failed to load friends:", error);
-        setLoading(false);
-      });
+      } catch (err) {
+        console.error("Data load failed:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFriends();
   }, []);
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+   
+  const friendsList = useMemo(() => friends, [friends]);
+
+  if (isLoading) return <LoadingSpinner />;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
+    <main className="max-w-7xl mx-auto px-4 py-10 page-fade-in">
       <Banner />
-      <SummaryCards friends={friends} />
+      <div className="animate-reveal" style={{ animationDelay: '0.2s' }}>
+        <SummaryCards friends={friendsList} />
+      </div>
 
       <section className="mt-14">
-        <h2 className="text-3xl font-bold text-white mb-8">Your Friends</h2>
+        <h2 className="text-3xl font-bold text-white mb-8 inline-block relative overflow-hidden group">
+          Your <span className="text-blue-500">Friends</span>
+          <div className="absolute bottom-0 left-0 w-full h-[2px] bg-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+        </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-          {friends.map((friend) => (
-            <FriendCard key={friend.id} friend={friend} />
+          {friendsList.map((friend, index) => (
+            <div 
+              key={friend.id || index} 
+              className="staggered-card"
+              style={{ "--index": index }}
+            >
+              <FriendCard friend={friend} />
+            </div>
           ))}
         </div>
       </section>
-    </div>
+    </main>
   );
 };
 
